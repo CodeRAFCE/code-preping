@@ -191,6 +191,8 @@ const debounceWithLeading = (fn, delay, immediate = false) => {
   };
 };
 
+//* For Leading & Trailing you need to remember the last call and save them
+//* so that means take advantage of closure
 const debounceWithLeadingAndTrailing = (
   fn,
   delay,
@@ -219,7 +221,7 @@ const debounceWithLeadingAndTrailing = (
 };
 
 debounceWithLeadingAndTrailing(fn, 500); // trailing only (normal debounce)
-debounceWithLeadingAndTrailing(fn, 500, true, false); // leading only (old Step 3)
-debounceWithLeadingAndTrailing(fn, 500, true, true); // leading + trailing
+debounceWithLeadingAndTrailing(fn, 500, { leading: true, trailing: false }); // leading only (old Step 3)
+debounceWithLeadingAndTrailing(fn, 500, { leading: true, trailing: true }); // leading + trailing
 
 //#endregion
