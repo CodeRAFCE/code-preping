@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Debounce Demo</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+    input { font-size: 18px; padding: 8px; width: 100%; box-sizing: border-box; }
+    button { font-size: 16px; padding: 8px 16px; margin: 10px 8px 10px 0; cursor: pointer; }
+    #log { background: #111; color: #eee; padding: 12px; height: 320px; overflow-y: auto; font-family: monospace; font-size: 14px; }
+    .key { color: #888; }
+    .run { color: #4ade80; font-weight: bold; }
+    .flush { color: #facc15; font-weight: bold; }
+    .cancel { color: #f87171; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Debounce Demo (2000ms delay)</h2>
+  <input id="search" placeholder="Type here..." autofocus>
+  <div>
+    <button id="flushBtn">Flush</button>
+    <button id="cancelBtn">Cancel</button>
+    <button id="clearBtn">Clear log</button>
+  </div>
+  <div id="log"></div>
+
+  <script>
+    const debounce = (fn, delay = 1000) => {
+      let timeout;
+      let lastArgs;
+      let lastThis;
+
+      function run() {
+        const args = lastArgs;
+        const context = lastThis;
+        timeout = lastArgs = lastThis = undefined;
+        fn.apply(context, args);
+      }
+
+      function debounced(...args) {
+        lastArgs = args;
+        lastThis = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(run, delay);
+      }
+
+      debounced.cancel = function () {
+        clearTimeout(timeout);
+        timeout = lastArgs = lastThis = undefined;
+      };
+
+      debounced.flush = function () {
+        if (timeout === undefined) return false;
+        clearTimeout(timeout);
+        run();
+        return true;
+      };
+
+      return debounced;
+    };
+
+    // ---- logging helper ----
+    const logEl = document.getElementById("log");
+    const start = Date.now();
+    function log(msg, cls) {
+      const t = ((Date.now() - start) / 1000).toFixed(2);
+      logEl.innerHTML += `<div class="${cls}">[${t}s] ${msg}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // ---- the function we want to debounce ----
+    function search(event) {
+      log(`✅ fn RAN with "${event.target.value}"  (this = <${this.tagName.toLowerCase()}>)`, "run");
+    }
+
+    const debouncedSearch = debounce(search, 2000);
+
+    const input = document.getElementById("search");
+
+    // shows every keystroke
+    input.addEventListener("input", (e) => {
+      log(`typed → "${e.target.value}"  (timer restarted)`, "key");
+    });
+
+    // the debounced handler
+    input.addEventListener("input", debouncedSearch);
+
+    document.getElementById("flushBtn").addEventListener("click", () => {
+      log("⚡ FLUSH clicked", "flush");
+      if (!debouncedSearch.flush()) log("   nothing pending, nothing to flush", "flush");
+      input.focus();
+    });
+
+    document.getElementById("cancelBtn").addEventListener("click", () => {
+      log("✖ CANCEL clicked, pending call thrown away", "cancel");
+      debouncedSearch.cancel();
+      input.focus();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      logEl.innerHTML = "";
+      input.focus();
+    });
+  </script>
+</body>
+</html>
