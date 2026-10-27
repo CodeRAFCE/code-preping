@@ -220,8 +220,18 @@ const debounceWithLeadingAndTrailing = (
   };
 };
 
-debounceWithLeadingAndTrailing(fn, 500); // trailing only (normal debounce)
-debounceWithLeadingAndTrailing(fn, 500, { leading: true, trailing: false }); // leading only (old Step 3)
-debounceWithLeadingAndTrailing(fn, 500, { leading: true, trailing: true }); // leading + trailing
+const runWithLeadingAndTrailing = () => {
+  console.log("Debounce with Leading and Trailing");
+};
+
+debounceWithLeadingAndTrailing(runWithLeadingAndTrailing, 500); // trailing only (normal debounce)
+debounceWithLeadingAndTrailing(runWithLeadingAndTrailing, 500, {
+  leading: true,
+  trailing: false,
+}); // leading only
+debounceWithLeadingAndTrailing(runWithLeadingAndTrailing, 500, {
+  leading: true,
+  trailing: true,
+}); // leading + trailing
 
 //#endregion
