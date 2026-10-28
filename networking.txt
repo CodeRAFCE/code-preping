@@ -1,0 +1,49 @@
+Popular Interview Questions
+ - Networking Fundatmentals
+ - How the internet works
+ - Frontend-Backend Interaction In-Depth.
+ - REST Concepts.
+ - Difference Between HTTP Methods
+ - HTTP Header-Based Questions?
+ - CORS In-Depth.
+
+ - Do Not Generalize concepts. Back it up with scenario. Like GraphQL 
+ ❌ => Don't just say Amazing, great tool for fetching the data in crsip format.
+ ✅ => Back it up with answers where you give a real world scenario. Think about Why GraphQL is amazing.
+ - Understand the problem statement, what kind of system it is. Give them Pros and cons with Real World Examples
+
+ - Understand Protocols - https, http, http1, http2, http3
+ - Don't Bluff => You Can't Master everything => But you should have an understanding on System Design concept.
+ - You may have note executed in  a real project but Convey that in a right fashion and would like to explore 
+ - deep inside if given the opurtunities will be better approach
+
+ - DNS is a dictionary of domains
+  
+What is Covered?
+ - How the Internet works?
+    - LEVEL-1 => So in for a machine to connect to a server we need a IP address to determine the location 
+      where the Request is coming from and send back a response back to the Machine basically Client. 
+      My High level understanding on how the web works.
+
+    - LEVEL-2 => When you type a domain in the URL the browser sends a request through the ISP to DNS for a 
+      IP-address. Now This IP address is sent back though the ISP and back to the Client and uses that 
+      IP to fetch the Site from the server
+
+    - LEVEL-3 How internet works => 
+    - Earlier Days Telephone wires were used for internet Connection, They used modem to convert the signal from the PROVIDER
+      and through the router it's broadcasted for internet access.
+
+      - How the Web Paints:
+      The web page rendering process in a browser involves multiple steps: first, the browser downloads the 
+      HTML and begins parsing it to build the Document Object Model (DOM). It may encounter CSS, 
+      which is a critical resource that must be fully downloaded and parsed before the page can be rendered. 
+      Afterward, JavaScript is processed, which can also block DOM parsing depending on how it is included 
+      (blocking or non-blocking with defer or async). Once the DOM and CSS are ready, a render tree is created, 
+      which includes layout and structuring. Finally, the browser performs painting, visually displaying the 
+      elements on the screen. This entire sequence emphasizes the importance of critical rendering paths where
+      any blocking resources must be loaded to render the page successfully.
+
+ - Network Protocols
+ - REST APIs
+ - GraphQL
+ - gRPC
