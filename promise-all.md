@@ -279,7 +279,90 @@ const promiseAllSettled = (promises) =>
 
 ---
 
-## 7. Common Follow-ups & Gotchas
+## 7. Promise.race() Deep Dive ⭐
+
+Runs promises **at the same time** and settles with whichever one **settles first**, success OR failure. Everything else is ignored.
+
+`ANALOGY:` A real race. The first runner across the line decides the result. If the first runner trips and falls (rejects), the race is lost, even if the others would have finished fine.
+
+### 🎯 Say This in the Interview
+
+> "`Promise.race` returns a promise that settles **the same way as the first input promise to settle**. If the first one fulfills, race fulfills with that value. If the first one rejects, race rejects with that reason. The classic use is a **timeout**: race the real request against a timer that rejects."
+
+### Timeline
+
+```
+fetchUsers  ──────────3s──────────✅
+fetchLikes  ────1s────✅                → .then("likes value") at ~1s
+fetchPosts  ──────2s──────❌               (users and posts are ignored)
+```
+
+If `fetchPosts` failed at **0.5s** instead, race would **reject** at 0.5s, even though likes succeeds later.
+
+### race vs any (most common mix-up)
+
+| Question                       | `Promise.race`                    | `Promise.any`                               |
+| ------------------------------ | --------------------------------- | ------------------------------------------- |
+| Settles on                     | First to **settle** (win OR lose) | First to **fulfill** (win only)             |
+| First promise rejects?         | race **rejects**                  | Ignored, keeps waiting for a success        |
+| When does it reject?           | When the first settler rejects    | Only when **all** reject (`AggregateError`) |
+| Use it for                     | Timeouts                          | Fastest working server / mirror             |
+
+### The Classic Use: Timeout
+
+```js
+const timeout = (ms) =>
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Timed out after ${ms}ms`)), ms),
+  );
+
+try {
+  const users = await Promise.race([fetchUsers(), timeout(2000)]);
+  console.log(users);
+} catch (err) {
+  console.error(err.message); // "Timed out after 2000ms" if fetch was too slow
+}
+```
+
+`NOTE:` the timeout only stops **you from waiting**. The real request keeps running in the background. To truly cancel a `fetch`, use an `AbortController`.
+
+### Write Your Own (Polyfill)
+
+The shortest polyfill of the bunch. No results array, no counter, no index.
+
+```js
+function promiseRace(promises) {
+  return new Promise((resolve, reject) => {
+    Array.from(promises).forEach((promise) =>
+      Promise.resolve(promise).then(resolve, reject),
+    );
+  });
+}
+```
+
+`WHY IT WORKS:` every promise is wired to the **same** `resolve` and `reject`. The first one to call either wins. Every later call is ignored, because a promise can only settle **once**.
+
+### Why Questions on the race Polyfill
+
+| Question                                     | Answer                                                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Why no results array or counter?             | race only cares about ONE result, the first. Nothing to collect, nothing to count                     |
+| How do the "losers" get ignored?             | They still call `resolve` / `reject`, but the promise is already settled, so those calls do nothing   |
+| Why `Promise.resolve(promise)`?              | Same as before: handles plain values like `promiseRace([1, p])`                                        |
+| Why `.then(resolve, reject)`?                | Passes the value or reason straight through. No need for `(v) => resolve(v)` wrappers                  |
+| What about an empty array?                   | **No early return on purpose.** The spec says `Promise.race([])` stays **pending forever**            |
+
+### race Gotchas
+
+- **Empty array hangs forever.** `Promise.race([])` never settles. This is the opposite of `all` / `allSettled`, which resolve with `[]`
+- **A fast failure beats a slow success.** If you want the first *success*, use `Promise.any`
+- **Losers are not cancelled.** They keep running, their results are just thrown away
+- **Plain values win instantly.** `Promise.race([1, slowPromise])` resolves with `1`, because a plain value is already resolved
+- **Already-settled promises:** if two inputs are already settled, the one **earlier in the array** wins, because `forEach` attaches handlers in order
+
+---
+
+## 8. Common Follow-ups & Gotchas
 
 - **Sequential vs parallel** → `await a(); await b(); await c();` takes 1s + 1s + 1s = **3s**. `await Promise.all([a(), b(), c()])` takes **1s**. Only use sequential when one call needs the result of another
 - **"I want partial results even if one fails"** → use `Promise.allSettled`
@@ -291,7 +374,7 @@ const promiseAllSettled = (promises) =>
 
 ---
 
-## 8. Quick Self-Test (try in `promise-all.js`)
+## 9. Quick Self-Test (try in `promise-all.js`)
 
 1. All `success = true` → logs all three after ~1s
 2. Set `success = false` in `fetchPosts` → only the error logs, no data
@@ -300,3 +383,6 @@ const promiseAllSettled = (promises) =>
 5. Swap `Promise.all` for `Promise.allSettled` with one failure → see every result with `status`
 6. Make **all three** fail with `allSettled` → `.catch` / `try-catch` still doesn't run; every result is `"rejected"`
 7. Run your `promiseAllSetteled` and the built-in side by side on the same input → the output should match exactly
+8. `Promise.race` with likes 1s ✅, posts 2s ❌ → resolves with likes' value at ~1s
+9. Same race, but make posts fail at 0.5s → race **rejects** with posts' error, even though likes succeeds later
+10. `Promise.race([])` → nothing ever logs (it stays pending forever)

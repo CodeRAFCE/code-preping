@@ -176,3 +176,18 @@ function promiseAllSetteled(promises) {
 //#endregion
 
 //* Basic Usage on Promise.race()
+//#region
+//* The first one to fulfill or reject will be returned ignoring other promise
+Promise.race([fetchUsers, fetchPosts, fetchLikes])
+  .then((value) => console.log("ONE VALUE", value))
+  .catch((error) => console.error("ERROR: Failed to fetch", error));
+
+//* Polyfill of Promise.race()
+function promiseRace(promises) {
+  return new Promise((resolve, reject) =>
+    Array.from(promises).forEach((promise) =>
+      Promise.resolve(promise).then(resolve, reject),
+    ),
+  );
+}
+//#endregion
